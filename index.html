@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GlobalPulse • Live News</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@700&display=swap');
+    
+    body { font-family: 'Inter', system-ui, sans-serif; }
+    .headline { font-family: 'Playfair Display', sans-serif; }
+    
+    .news-card {
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .news-card:hover {
+      transform: translateY(-8px);
+      box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+    }
+    
+    .source-pill {
+      font-size: 10px;
+      letter-spacing: 0.5px;
+    }
+  </style>
+</head>
+<body class="bg-zinc-950 text-zinc-200 min-h-screen">
+  <div class="max-w-7xl mx-auto">
+    <!-- HEADER -->
+    <header class="sticky top-0 z-50 bg-zinc-900 border-b border-zinc-800">
+      <div class="px-6 py-5 flex items-center justify-between">
+        <div class="flex items-center gap-4">
+          <div class="w-9 h-9 bg-gradient-to-br from-red-500 to-blue-600 rounded-xl flex items-center justify-center text-white font-bold text-2xl">G</div>
+          <div>
+            <h1 class="text-3xl font-bold tracking-tighter headline">GlobalPulse</h1>
+            <p class="text-xs text-zinc-500 -mt-1">Live from 5 major sources</p>
+          </div>
+        </div>
+        
+        <div class="flex items-center gap-6">
+          <div class="flex bg-zinc-800 rounded-2xl p-1 text-sm">
+            <button onclick="switchTab(0)" id="tab-0" class="tab-btn px-5 py-2.5 rounded-xl font-medium active">All</button>
+            <button onclick="switchTab(1)" id="tab-1" class="tab-btn px-5 py-2.5 rounded-xl font-medium">CNN</button>
+            <button onclick="switchTab(2)" id="tab-2" class="tab-btn px-5 py-2.5 rounded-xl font-medium">Fox</button>
+            <button onclick="switchTab(3)" id="tab-3" class="tab-btn px-5 py-2.5 rounded-xl font-medium">NYT</button>
+            <button onclick="switchTab(4)" id="tab-4" class="tab-btn px-5 py-2.5 rounded-xl font-medium">Reuters</button>
+            <button onclick="switchTab(5)" id="tab-5" class="tab-btn px-5 py-2.5 rounded-xl font-medium">CNBC</button>
+          </div>
+          
+          <button onclick="refreshAll()" class="flex items-center gap-2 bg-zinc-800 hover:bg-zinc-700 px-4 py-2.5 rounded-2xl transition">
+            <i class="fa-solid fa-arrows-rotate"></i>
+            <span class="text-sm font-medium">Refresh</span>
+          </button>
+          
+          <div class="flex items-center gap-2 bg-zinc-800 rounded-2xl p-1">
+            <button onclick="toggleTheme()" class="w-10 h-10 flex items-center justify-center rounded-xl hover:bg-zinc-700">
+              <i class="fa-solid fa-moon text-lg"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <div class="p-6">
+      <!-- STATS -->
+      <div class="grid grid-cols-5 gap-4 mb-8" id="source-stats">
+        <!-- Populated by JS -->
+      </div>
+
+      <!-- NEWS GRID -->
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" id="news-grid">
+        <!-- Populated by JS -->
+      </div>
+    </div>
+  </div>
+
+  <!-- FOOTER -->
+  <footer class="border-t border-zinc-800 py-8 mt-16">
+    <div class="max-w-7xl mx-auto px-6 text-center text-zinc-500 text-sm">
+      Demo project • News data via public RSS feeds &amp; NewsAPI.org<br>
+      Built with ❤️ using HTML + Tailwind + Vanilla JS + Node.js backend option
+    </div>
+  </footer>
+
+  <script>
+    // Sample data (in production, replace with real API calls)
+    let allNews = [];
+    
+    const sources = [
+      { name: "CNN", color: "bg-red-600", logo: "CNN" },
+      { name: "Fox News", color: "bg-blue-600", logo: "FOX" },
+      { name: "NY Times", color: "bg-black", logo: "NYT" },
+      { name: "Reuters", color: "bg-orange-600", logo: "REU" },
+      { name: "CNBC", color: "bg-green-600", logo: "CNBC" }
+    ];
+
+    // Mock data for demo
+    function generateMockNews() {
+      allNews = [
+        {
+          id: 1,
+          title: "Markets surge as inflation cools faster than expected",
+          description: "Major indices hit record highs following better-than-expected CPI data.",
+          image: "https://picsum.photos/id/1015/800/450",
+          source: "CNBC",
+          time: "8m ago",
+          url: "#"
+        },
+        {
+          id: 2,
+          title: "Breaking: Major diplomatic breakthrough announced in Geneva",
+          description: "World leaders reach historic agreement on climate and trade.",
+          image: "https://picsum.photos/id/102/800/450",
+          source: "Reuters",
+          time: "14m ago",
+          url: "#"
+        },
+        {
+          id: 3,
+          title: "Tech giant faces antitrust charges in landmark case",
+          description: "Department of Justice files sweeping lawsuit against industry leader.",
+          image: "https://picsum.photos/id/201/800/450",
+          source: "NY Times",
+          time: "27m ago",
+          url: "#"
+        },
+        {
+          id: 4,
+          title: "Hurricane season 2026 could be one of the most active on record",
+          description: "NOAA updates forecast citing warmer Atlantic waters.",
+          image: "https://picsum.photos/id/251/800/450",
+          source: "CNN",
+          time: "41m ago",
+          url: "#"
+        },
+        {
+          id: 5,
+          title: "Election 2026: New polls show tight race in key battleground states",
+          description: "Voters remain deeply divided on economy and immigration.",
+          image: "https://picsum.photos/id/301/800/450",
+          source: "Fox News",
+          time: "1h ago",
+          url: "#"
+        }
+      ];
+      renderNews(allNews);
+      renderStats();
+    }
+
+    function renderNews(news) {
+      const grid = document.getElementById('news-grid');
+      grid.innerHTML = '';
+      
+      news.forEach(item => {
+        const source = sources.find(s => s.name === item.source) || sources[0];
+        
+        const card = document.createElement('div');
+        card.className = `news-card bg-zinc-900 border border-zinc-800 rounded-3xl overflow-hidden cursor-pointer`;
+        card.innerHTML = `
+          <img src="${item.image}" alt="${item.title}" class="w-full h-52 object-cover">
+          <div class="p-6">
+            <div class="flex items-center gap-3 mb-4">
+              <div class="${source.color} text-white text-[10px] font-bold px-3 py-1 rounded-xl source-pill">${source.logo}</div>
+              <span class="text-zinc-500 text-sm">${item.time}</span>
+            </div>
+            <h3 class="headline text-xl leading-tight font-semibold mb-3 line-clamp-3">${item.title}</h3>
+            <p class="text-zinc-400 text-sm line-clamp-3 mb-5">${item.description}</p>
+            <a href="${item.url}" target="_blank" 
+               class="inline-flex items-center gap-2 text-blue-400 hover:text-blue-300 text-sm font-medium">
+              Read full story <i class="fa-solid fa-arrow-up-right-from-square"></i>
+            </a>
+          </div>
+        `;
+        grid.appendChild(card);
+      });
+    }
+
+    function renderStats() {
+      const container = document.getElementById('source-stats');
+      container.innerHTML = sources.map(source => `
+        <div class="bg-zinc-900 border border-zinc-800 rounded-3xl p-5">
+          <div class="flex justify-between items-start">
+            <div>
+              <div class="text-3xl font-bold">${Math.floor(Math.random()*25)+12}</div>
+              <div class="text-sm text-zinc-400">${source.name}</div>
+            </div>
+            <div class="${source.color} w-10 h-10 rounded-2xl flex items-center justify-center text-white font-bold text-xs">${source.logo}</div>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function switchTab(tabIndex) {
+      document.querySelectorAll('.tab-btn').forEach((btn, i) => {
+        if (i === tabIndex) {
+          btn.classList.add('active', 'bg-zinc-700', 'text-white');
+        } else {
+          btn.classList.remove('active', 'bg-zinc-700', 'text-white');
+        }
+      });
+      
+      if (tabIndex === 0) {
+        renderNews(allNews);
+      } else {
+        const filtered = allNews.filter(n => 
+          n.source.toLowerCase().includes(sources[tabIndex-1].name.toLowerCase())
+        );
+        renderNews(filtered.length ? filtered : allNews);
+      }
+    }
+
+    async function refreshAll() {
+      const btns = document.querySelectorAll('button');
+      btns.forEach(b => b.style.opacity = 0.6);
+      
+      // Simulate API call
+      await new Promise(r => setTimeout(r, 800));
+      generateMockNews();
+      
+      btns.forEach(b => b.style.opacity = 1);
+    }
+
+    function toggleTheme() {
+      document.documentElement.classList.toggle('dark');
+    }
+
+    // Initialize
+    window.onload = () => {
+      generateMockNews();
+      
+      // Auto refresh every 5 minutes
+      setInterval(() => {
+        refreshAll();
+      }, 300000);
+    };
+  </script>
+</body>
+</html>
